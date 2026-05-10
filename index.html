@@ -141,7 +141,6 @@ body{
   user-select:none;
 }
 .key:active{transform:scale(0.94);background:var(--surface2);border-color:var(--accent)}
-.key.zero{grid-column:span 2}
 .key.del{color:var(--danger);font-size:18px}
 .key.dec{color:var(--muted)}
 
@@ -490,7 +489,8 @@ body{
   <div class="key" onclick="press('1')">1</div>
   <div class="key" onclick="press('2')">2</div>
   <div class="key" onclick="press('3')">3</div>
-  <div class="key zero" onclick="press('0')">0</div>
+  <div class="key" onclick="press('.')">.</div>
+  <div class="key" onclick="press('0')">0</div>
   <div class="key del" onclick="del()">⌫</div>
 </div>
 
@@ -649,7 +649,8 @@ let expenses = JSON.parse(localStorage.getItem('expenses_v2') || '[]');
 // KEYPAD
 function press(d) {
   if (d === '.' && amount.includes('.')) return;
-  if (amount.length >= 8) return;
+  if (amount.includes('.') && amount.split('.')[1].length >= 2) return;
+  if (amount.length >= 10) return;
   if (amount === '' && d === '.') amount = '0.';
   else if (amount === '0' && d !== '.') amount = d;
   else amount += d;
