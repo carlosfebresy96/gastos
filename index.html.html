@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Gastos">
+<meta name="theme-color" content="#0a0a0f">
+<title>Gastos Rápido</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Sora:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#0a0a0f;
+  --surface:#13131a;
+  --surface2:#1c1c26;
+  --border:#2a2a3a;
+  --accent:#6c63ff;
+  --accent2:#a78bfa;
+  --text:#f0f0f8;
+  --muted:#6b6b80;
+  --success:#22d3a0;
+  --warn:#f59e0b;
+  --danger:#f87171;
+  --pen:#4ade80;
+}
+body{
+  font-family:'Sora',sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  min-height:100dvh;
+  display:flex;
+  flex-direction:column;
+  overflow-x:hidden;
+  padding-bottom:env(safe-area-inset-bottom);
+}
+
+/* HEADER */
+.header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:16px 20px 12px;
+  border-bottom:1px solid var(--border);
+  background:var(--bg);
+  position:sticky;
+  top:0;
+  z-index:10;
+}
+.logo{font-family:'DM Mono',monospace;font-size:13px;color:var(--muted);letter-spacing:0.1em}
+.logo span{color:var(--accent2)}
+.header-actions{display:flex;gap:8px}
+.icon-btn{
+  width:36px;height:36px;
+  border-radius:10px;
+  background:var(--surface);
+  border:1px solid var(--border);
+  color:var(--muted);
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;font-size:16px;
+  transition:all 0.15s;
+}
+.icon-btn:active{transform:scale(0.92);background:var(--surface2)}
+
+/* AMOUNT DISPLAY */
+.amount-section{
+  padding:24px 20px 8px;
+  text-align:center;
+}
+.currency-toggle{
+  display:inline-flex;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:20px;
+  padding:3px;
+  margin-bottom:16px;
+  gap:2px;
+}
+.currency-btn{
+  padding:4px 16px;
+  border-radius:16px;
+  font-size:12px;
+  font-family:'DM Mono',monospace;
+  font-weight:500;
+  cursor:pointer;
+  border:none;
+  background:transparent;
+  color:var(--muted);
+  transition:all 0.2s;
+}
+.currency-btn.active{
+  background:var(--accent);
+  color:#fff;
+}
+.amount-display{
+  font-family:'DM Mono',monospace;
+  font-size:56px;
+  font-weight:500;
+  color:var(--text);
+  letter-spacing:-2px;
+  min-height:68px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:4px;
+}
+.amount-display .sym{
+  font-size:28px;
+  color:var(--muted);
+  align-self:flex-start;
+  margin-top:12px;
+}
+.amount-display .val{
+  transition:color 0.2s;
+}
+.amount-display.has-value .val{color:var(--accent2)}
+
+/* KEYPAD */
+.keypad{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:8px;
+  padding:12px 20px;
+}
+.key{
+  height:60px;
+  border-radius:14px;
+  background:var(--surface);
+  border:1px solid var(--border);
+  color:var(--text);
+  font-family:'DM Mono',monospace;
+  font-size:22px;
+  font-weight:500;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  transition:all 0.1s;
+  user-select:none;
+}
+.key:active{transform:scale(0.94);background:var(--surface2);border-color:var(--accent)}
+.key.zero{grid-column:span 2}
+.key.del{color:var(--danger);font-size:18px}
+.key.dec{color:var(--muted)}
+
+/* FIELDS */
+.fields{
+  padding:8px 20px;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+.field-label{
+  font-size:10px;
+  font-weight:600;
+  letter-spacing:0.1em;
+  color:var(--muted);
+  text-transform:uppercase;
+  margin-bottom:4px;
+}
+.chip-group{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+}
+.chip{
+  padding:6px 12px;
+  border-radius:20px;
+  font-size:12px;
+  font-weight:600;
+  background:var(--surface);
+  border:1px solid var(--border);
+  color:var(--muted);
+  cursor:pointer;
+  transition:all 0.15s;
+  user-select:none;
+}
+.chip:active{transform:scale(0.95)}
+.chip.selected{
+  background:var(--accent);
+  border-color:var(--accent);
+  color:#fff;
+}
+
+/* category colors */
+.chip[data-cat="comida"].selected{background:#e85d4a;border-color:#e85d4a}
+.chip[data-cat="transporte"].selected{background:#3b82f6;border-color:#3b82f6}
+.chip[data-cat="salud"].selected{background:#22d3a0;border-color:#22d3a0}
+.chip[data-cat="entretenimiento"].selected{background:#a855f7;border-color:#a855f7}
+.chip[data-cat="servicios"].selected{background:#f59e0b;border-color:#f59e0b}
+.chip[data-cat="ropa"].selected{background:#ec4899;border-color:#ec4899}
+.chip[data-cat="otros"].selected{background:#6b7280;border-color:#6b7280}
+
+/* payment chips */
+.chip[data-pay="yape"].selected{background:#6d28d9;border-color:#6d28d9}
+.chip[data-pay="plin"].selected{background:#0891b2;border-color:#0891b2}
+.chip[data-pay="bbva"].selected{background:#1d4ed8;border-color:#1d4ed8}
+.chip[data-pay="amex"].selected{background:#1e40af;border-color:#1e40af}
+.chip[data-pay="efectivo"].selected{background:#15803d;border-color:#15803d}
+.chip[data-pay="transferencia"].selected{background:#92400e;border-color:#92400e}
+
+/* toggle row */
+.toggle-row{
+  display:flex;
+  gap:8px;
+}
+.toggle-group{
+  display:flex;
+  flex:1;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:3px;
+  gap:2px;
+}
+.toggle-btn{
+  flex:1;
+  padding:6px 4px;
+  border-radius:7px;
+  font-size:11px;
+  font-weight:600;
+  cursor:pointer;
+  border:none;
+  background:transparent;
+  color:var(--muted);
+  transition:all 0.15s;
+}
+.toggle-btn.active{
+  background:var(--surface2);
+  color:var(--text);
+  border:1px solid var(--border);
+}
+
+/* note input */
+.note-input{
+  width:100%;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:12px;
+  color:var(--text);
+  font-family:'Sora',sans-serif;
+  font-size:13px;
+  padding:10px 14px;
+  outline:none;
+  resize:none;
+  transition:border-color 0.2s;
+}
+.note-input::placeholder{color:var(--muted)}
+.note-input:focus{border-color:var(--accent)}
+
+/* SUBMIT */
+.submit-area{
+  padding:12px 20px 16px;
+  margin-top:auto;
+}
+.submit-btn{
+  width:100%;
+  height:56px;
+  border-radius:16px;
+  background:var(--accent);
+  border:none;
+  color:#fff;
+  font-family:'Sora',sans-serif;
+  font-size:16px;
+  font-weight:700;
+  cursor:pointer;
+  transition:all 0.15s;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  letter-spacing:0.02em;
+}
+.submit-btn:active{transform:scale(0.97)}
+.submit-btn:disabled{background:var(--surface2);color:var(--muted);cursor:not-allowed}
+.submit-btn.loading{background:var(--surface2)}
+.spinner{
+  width:20px;height:20px;
+  border:2px solid rgba(255,255,255,0.2);
+  border-top-color:#fff;
+  border-radius:50%;
+  animation:spin 0.7s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* TOAST */
+.toast{
+  position:fixed;
+  bottom:32px;
+  left:50%;
+  transform:translateX(-50%) translateY(20px);
+  background:var(--surface2);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:10px 20px;
+  font-size:13px;
+  font-weight:600;
+  color:var(--text);
+  opacity:0;
+  transition:all 0.3s;
+  z-index:100;
+  white-space:nowrap;
+  pointer-events:none;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.success{border-color:var(--success);color:var(--success)}
+.toast.error{border-color:var(--danger);color:var(--danger)}
+
+/* HISTORY PANEL */
+.panel{
+  position:fixed;
+  inset:0;
+  background:var(--bg);
+  z-index:50;
+  transform:translateX(100%);
+  transition:transform 0.3s cubic-bezier(0.4,0,0.2,1);
+  overflow-y:auto;
+  padding-bottom:env(safe-area-inset-bottom);
+}
+.panel.open{transform:translateX(0)}
+.panel-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:16px 20px;
+  border-bottom:1px solid var(--border);
+  position:sticky;
+  top:0;
+  background:var(--bg);
+  z-index:1;
+}
+.panel-title{font-size:16px;font-weight:600}
+.close-btn{
+  width:32px;height:32px;
+  border-radius:8px;
+  background:var(--surface);
+  border:1px solid var(--border);
+  color:var(--muted);
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;font-size:18px;
+}
+.expense-item{
+  padding:14px 20px;
+  border-bottom:1px solid var(--border);
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+.cat-dot{
+  width:10px;height:10px;
+  border-radius:50%;
+  flex-shrink:0;
+}
+.expense-info{flex:1;min-width:0}
+.expense-main{
+  display:flex;
+  justify-content:space-between;
+  align-items:baseline;
+  margin-bottom:2px;
+}
+.expense-cat{font-size:14px;font-weight:600}
+.expense-amount{
+  font-family:'DM Mono',monospace;
+  font-size:15px;
+  font-weight:500;
+  color:var(--accent2);
+}
+.expense-meta{
+  font-size:11px;
+  color:var(--muted);
+  display:flex;gap:6px;flex-wrap:wrap;
+}
+.meta-tag{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:4px;
+  padding:1px 5px;
+}
+.empty-state{
+  text-align:center;
+  padding:60px 20px;
+  color:var(--muted);
+  font-size:14px;
+}
+
+/* CONFIG PANEL */
+.config-section{
+  padding:16px 20px;
+  border-bottom:1px solid var(--border);
+}
+.config-label{font-size:12px;color:var(--muted);margin-bottom:8px;font-weight:600;letter-spacing:0.05em}
+.config-input{
+  width:100%;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:10px;
+  color:var(--text);
+  font-family:'Sora',sans-serif;
+  font-size:13px;
+  padding:10px 14px;
+  outline:none;
+}
+.config-input:focus{border-color:var(--accent)}
+.config-input::placeholder{color:var(--muted)}
+.save-config-btn{
+  margin:16px 20px;
+  width:calc(100% - 40px);
+  height:48px;
+  border-radius:12px;
+  background:var(--accent);
+  border:none;
+  color:#fff;
+  font-family:'Sora',sans-serif;
+  font-size:14px;
+  font-weight:700;
+  cursor:pointer;
+}
+.hint{font-size:11px;color:var(--muted);margin-top:6px;line-height:1.5}
+.hint a{color:var(--accent2);text-decoration:none}
+
+/* divider */
+.section-divider{
+  height:1px;
+  background:var(--border);
+  margin:4px 0;
+}
+
+/* custom cat input */
+.add-cat-row{
+  display:flex;
+  gap:6px;
+  margin-top:6px;
+}
+.cat-input{
+  flex:1;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:20px;
+  color:var(--text);
+  font-family:'Sora',sans-serif;
+  font-size:12px;
+  padding:6px 12px;
+  outline:none;
+}
+.cat-input:focus{border-color:var(--accent)}
+.cat-add-btn{
+  width:32px;height:32px;
+  border-radius:50%;
+  background:var(--accent);
+  border:none;
+  color:#fff;
+  font-size:18px;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">💸 <span>gastos</span>.app</div>
+  <div class="header-actions">
+    <div class="icon-btn" onclick="openPanel('history')" title="Historial">≡</div>
+    <div class="icon-btn" onclick="openPanel('config')" title="Configurar">⚙</div>
+  </div>
+</div>
+
+<!-- AMOUNT -->
+<div class="amount-section">
+  <div class="currency-toggle">
+    <button class="currency-btn active" onclick="setCurrency('S/')">S/</button>
+    <button class="currency-btn" onclick="setCurrency('$')">USD</button>
+  </div>
+  <div class="amount-display" id="amountDisplay">
+    <span class="sym" id="symDisplay">S/</span>
+    <span class="val" id="valDisplay">0</span>
+  </div>
+</div>
+
+<!-- KEYPAD -->
+<div class="keypad">
+  <div class="key" onclick="press('7')">7</div>
+  <div class="key" onclick="press('8')">8</div>
+  <div class="key" onclick="press('9')">9</div>
+  <div class="key" onclick="press('4')">4</div>
+  <div class="key" onclick="press('5')">5</div>
+  <div class="key" onclick="press('6')">6</div>
+  <div class="key" onclick="press('1')">1</div>
+  <div class="key" onclick="press('2')">2</div>
+  <div class="key" onclick="press('3')">3</div>
+  <div class="key zero" onclick="press('0')">0</div>
+  <div class="key del" onclick="del()">⌫</div>
+</div>
+
+<!-- FIELDS -->
+<div class="fields">
+
+  <!-- Categoría -->
+  <div>
+    <div class="field-label">Categoría</div>
+    <div class="chip-group" id="catGroup">
+      <div class="chip" data-cat="comida" onclick="selectChip(this,'cat')">🍔 Comida</div>
+      <div class="chip" data-cat="transporte" onclick="selectChip(this,'cat')">🚗 Transporte</div>
+      <div class="chip" data-cat="salud" onclick="selectChip(this,'cat')">💊 Salud</div>
+      <div class="chip" data-cat="entretenimiento" onclick="selectChip(this,'cat')">🎬 Entrete.</div>
+      <div class="chip" data-cat="servicios" onclick="selectChip(this,'cat')">🧾 Servicios</div>
+      <div class="chip" data-cat="ropa" onclick="selectChip(this,'cat')">👔 Ropa</div>
+      <div class="chip" data-cat="otros" onclick="selectChip(this,'cat')">📦 Otros</div>
+    </div>
+    <div class="add-cat-row">
+      <input class="cat-input" id="newCatInput" placeholder="Nueva categoría..." maxlength="20">
+      <button class="cat-add-btn" onclick="addCustomCat()">+</button>
+    </div>
+  </div>
+
+  <!-- Medio de pago -->
+  <div>
+    <div class="field-label">Medio de pago</div>
+    <div class="chip-group">
+      <div class="chip" data-pay="yape" onclick="selectChip(this,'pay')">💜 Yape</div>
+      <div class="chip" data-pay="plin" onclick="selectChip(this,'pay')">🔵 Plin</div>
+      <div class="chip" data-pay="bbva" onclick="selectChip(this,'pay')">🏦 BBVA</div>
+      <div class="chip" data-pay="amex" onclick="selectChip(this,'pay')">💳 Amex</div>
+      <div class="chip" data-pay="efectivo" onclick="selectChip(this,'pay')">💵 Efectivo</div>
+      <div class="chip" data-pay="transferencia" onclick="selectChip(this,'pay')">↗ Transfer.</div>
+    </div>
+  </div>
+
+  <!-- Tipo + Facturado -->
+  <div>
+    <div class="field-label">Tipo y comprobante</div>
+    <div class="toggle-row">
+      <div>
+        <div class="toggle-group" id="typeGroup">
+          <button class="toggle-btn active" onclick="setToggle('type','personal')">Personal</button>
+          <button class="toggle-btn" onclick="setToggle('type','empresa')">Empresa</button>
+        </div>
+      </div>
+      <div>
+        <div class="toggle-group" id="facGroup">
+          <button class="toggle-btn active" onclick="setToggle('fac','no')">Sin factura</button>
+          <button class="toggle-btn" onclick="setToggle('fac','si')">Facturado</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Nota -->
+  <div>
+    <div class="field-label">Nota (opcional)</div>
+    <textarea class="note-input" id="noteInput" rows="2" placeholder="Descripción del gasto..."></textarea>
+  </div>
+
+</div>
+
+<!-- SUBMIT -->
+<div class="submit-area">
+  <button class="submit-btn" id="submitBtn" onclick="submitExpense()">
+    <span id="submitLabel">Registrar gasto</span>
+  </button>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- HISTORY PANEL -->
+<div class="panel" id="historyPanel">
+  <div class="panel-header">
+    <span class="panel-title">Historial</span>
+    <div class="close-btn" onclick="closePanel('history')">×</div>
+  </div>
+  <div id="historyList"></div>
+</div>
+
+<!-- CONFIG PANEL -->
+<div class="panel" id="configPanel">
+  <div class="panel-header">
+    <span class="panel-title">Configuración</span>
+    <div class="close-btn" onclick="closePanel('config')">×</div>
+  </div>
+
+  <div class="config-section">
+    <div class="config-label">Google Sheets — Webhook URL</div>
+    <input class="config-input" id="webhookUrl" placeholder="https://script.google.com/macros/s/.../exec">
+    <div class="hint">
+      Necesitas crear un Apps Script en tu Google Sheet.<br>
+      <a href="#" onclick="showScriptHelp()">Ver instrucciones paso a paso →</a>
+    </div>
+  </div>
+
+  <div class="config-section">
+    <div class="config-label">Nombre de la hoja</div>
+    <input class="config-input" id="sheetName" placeholder="Gastos" value="Gastos">
+  </div>
+
+  <div class="config-section">
+    <div class="config-label">Nombre / etiqueta</div>
+    <input class="config-input" id="userName" placeholder="Mi nombre o proyecto">
+  </div>
+
+  <button class="save-config-btn" onclick="saveConfig()">Guardar configuración</button>
+
+  <div id="scriptHelpSection" style="display:none;padding:0 20px 20px">
+    <div class="config-label" style="margin-bottom:12px">Cómo conectar Google Sheets</div>
+    <div style="font-size:12px;color:var(--muted);line-height:1.8">
+      <b style="color:var(--text)">1.</b> Abre tu Google Sheet → Extensiones → Apps Script<br>
+      <b style="color:var(--text)">2.</b> Borra el código existente y pega el siguiente:<br><br>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px;font-family:'DM Mono',monospace;font-size:11px;color:var(--accent2);line-height:1.7;overflow-x:auto;white-space:pre">function doPost(e) {
+  var data = JSON.parse(e.postData.contents);
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName(data.sheet) 
+            || ss.insertSheet(data.sheet);
+  if (sheet.getLastRow() === 0) {
+    sheet.appendRow([
+      'Fecha','Hora','Monto','Moneda',
+      'Categoría','Pago','Tipo',
+      'Facturado','Nota'
+    ]);
+  }
+  sheet.appendRow([
+    data.fecha, data.hora, data.monto,
+    data.moneda, data.categoria, data.pago,
+    data.tipo, data.facturado, data.nota
+  ]);
+  return ContentService
+    .createTextOutput(JSON.stringify({ok:true}))
+    .setMimeType(ContentService.MimeType.JSON);
+}</div>
+      <br>
+      <b style="color:var(--text)">3.</b> Guarda (Ctrl+S)<br>
+      <b style="color:var(--text)">4.</b> Implementar → Nueva implementación → Aplicación web<br>
+      <b style="color:var(--text)">5.</b> Ejecutar como: <i>Yo</i> | Quién accede: <i>Cualquier usuario</i><br>
+      <b style="color:var(--text)">6.</b> Copia la URL y pégala arriba ↑
+    </div>
+  </div>
+</div>
+
+<script>
+let amount = '';
+let currency = 'S/';
+let selectedCat = '';
+let selectedPay = '';
+let selectedType = 'personal';
+let selectedFac = 'no';
+let expenses = JSON.parse(localStorage.getItem('expenses_v2') || '[]');
+
+// KEYPAD
+function press(d) {
+  if (d === '.' && amount.includes('.')) return;
+  if (amount.length >= 8) return;
+  if (amount === '' && d === '.') amount = '0.';
+  else if (amount === '0' && d !== '.') amount = d;
+  else amount += d;
+  updateDisplay();
+}
+
+function del() {
+  amount = amount.slice(0, -1);
+  updateDisplay();
+}
+
+function updateDisplay() {
+  const disp = document.getElementById('amountDisplay');
+  const val = document.getElementById('valDisplay');
+  val.textContent = amount || '0';
+  disp.classList.toggle('has-value', amount.length > 0 && amount !== '0');
+}
+
+function setCurrency(c) {
+  currency = c;
+  document.getElementById('symDisplay').textContent = c;
+  document.querySelectorAll('.currency-btn').forEach(b => {
+    b.classList.toggle('active', b.textContent === c);
+  });
+}
+
+// CHIPS
+function selectChip(el, group) {
+  const g = group === 'cat' ? '[data-cat]' : '[data-pay]';
+  document.querySelectorAll(g).forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  if (group === 'cat') selectedCat = el.dataset.cat || el.textContent.trim();
+  else selectedPay = el.dataset.pay;
+}
+
+function addCustomCat() {
+  const inp = document.getElementById('newCatInput');
+  const val = inp.value.trim();
+  if (!val) return;
+  const chip = document.createElement('div');
+  chip.className = 'chip';
+  chip.textContent = val;
+  chip.onclick = function() { selectChip(this, 'cat'); };
+  document.getElementById('catGroup').appendChild(chip);
+  selectChip(chip, 'cat');
+  inp.value = '';
+}
+
+// TOGGLES
+function setToggle(group, val) {
+  const grpId = group === 'type' ? 'typeGroup' : 'facGroup';
+  document.querySelectorAll('#' + grpId + ' .toggle-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  if (group === 'type') selectedType = val;
+  else selectedFac = val;
+}
+
+// SUBMIT
+async function submitExpense() {
+  if (!amount || parseFloat(amount) === 0) { showToast('Ingresa un monto', 'error'); return; }
+  if (!selectedCat) { showToast('Selecciona una categoría', 'error'); return; }
+  if (!selectedPay) { showToast('Selecciona el medio de pago', 'error'); return; }
+
+  const now = new Date();
+  const pad = n => String(n).padStart(2, '0');
+  const fecha = `${pad(now.getDate())}/${pad(now.getMonth()+1)}/${now.getFullYear()}`;
+  const hora = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
+
+  const expense = {
+    fecha, hora,
+    monto: parseFloat(amount),
+    moneda: currency,
+    categoria: selectedCat,
+    pago: selectedPay,
+    tipo: selectedType,
+    facturado: selectedFac,
+    nota: document.getElementById('noteInput').value.trim(),
+    sheet: localStorage.getItem('sheetName') || 'Gastos'
+  };
+
+  expenses.unshift(expense);
+  localStorage.setItem('expenses_v2', JSON.stringify(expenses.slice(0, 200)));
+
+  const webhookUrl = localStorage.getItem('webhookUrl');
+  if (webhookUrl) {
+    setLoading(true);
+    try {
+      await fetch(webhookUrl, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(expense)
+      });
+      showToast('✓ Guardado en Google Sheets', 'success');
+    } catch {
+      showToast('Guardado local (sin conexión)', '');
+    }
+    setLoading(false);
+  } else {
+    showToast('✓ Guardado localmente', 'success');
+  }
+
+  // reset
+  amount = '';
+  selectedCat = '';
+  selectedPay = '';
+  document.querySelectorAll('.chip').forEach(c => c.classList.remove('selected'));
+  document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector('#typeGroup .toggle-btn').classList.add('active');
+  document.querySelector('#facGroup .toggle-btn').classList.add('active');
+  selectedType = 'personal';
+  selectedFac = 'no';
+  document.getElementById('noteInput').value = '';
+  updateDisplay();
+}
+
+function setLoading(on) {
+  const btn = document.getElementById('submitBtn');
+  const label = document.getElementById('submitLabel');
+  btn.disabled = on;
+  btn.classList.toggle('loading', on);
+  if (on) {
+    label.innerHTML = '<div class="spinner"></div>';
+  } else {
+    label.textContent = 'Registrar gasto';
+  }
+}
+
+// TOAST
+function showToast(msg, type) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast ' + type;
+  setTimeout(() => t.classList.add('show'), 10);
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+// PANELS
+function openPanel(name) {
+  if (name === 'history') renderHistory();
+  document.getElementById(name + 'Panel').classList.add('open');
+}
+function closePanel(name) {
+  document.getElementById(name + 'Panel').classList.remove('open');
+}
+
+const catColors = {
+  comida:'#e85d4a',transporte:'#3b82f6',salud:'#22d3a0',
+  entretenimiento:'#a855f7',servicios:'#f59e0b',ropa:'#ec4899',otros:'#6b7280'
+};
+
+function renderHistory() {
+  const list = document.getElementById('historyList');
+  if (!expenses.length) {
+    list.innerHTML = '<div class="empty-state">Aún no hay gastos registrados</div>';
+    return;
+  }
+  list.innerHTML = expenses.map(e => `
+    <div class="expense-item">
+      <div class="cat-dot" style="background:${catColors[e.categoria]||'#6b7280'}"></div>
+      <div class="expense-info">
+        <div class="expense-main">
+          <span class="expense-cat">${e.categoria||'—'}</span>
+          <span class="expense-amount">${e.moneda} ${e.monto.toFixed(2)}</span>
+        </div>
+        <div class="expense-meta">
+          <span>${e.fecha} ${e.hora}</span>
+          <span class="meta-tag">${e.pago}</span>
+          <span class="meta-tag">${e.tipo}</span>
+          ${e.facturado==='si'?'<span class="meta-tag" style="color:var(--success)">facturado</span>':''}
+          ${e.nota?`<span style="color:var(--muted)">${e.nota}</span>`:''}
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// CONFIG
+function saveConfig() {
+  localStorage.setItem('webhookUrl', document.getElementById('webhookUrl').value.trim());
+  localStorage.setItem('sheetName', document.getElementById('sheetName').value.trim() || 'Gastos');
+  localStorage.setItem('userName', document.getElementById('userName').value.trim());
+  showToast('✓ Configuración guardada', 'success');
+  closePanel('config');
+}
+
+function showScriptHelp() {
+  const s = document.getElementById('scriptHelpSection');
+  s.style.display = s.style.display === 'none' ? 'block' : 'none';
+}
+
+// Load config
+window.addEventListener('load', () => {
+  const url = localStorage.getItem('webhookUrl');
+  const sheet = localStorage.getItem('sheetName');
+  const user = localStorage.getItem('userName');
+  if (url) document.getElementById('webhookUrl').value = url;
+  if (sheet) document.getElementById('sheetName').value = sheet;
+  if (user) document.getElementById('userName').value = user;
+});
+</script>
+</body>
+</html>
